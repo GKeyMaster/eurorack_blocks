@@ -1,0 +1,797 @@
+#!/usr/bin/env python3
+#
+#     erbb
+#     Copyright (c) 2020 Raphael DINGE
+#
+#Tab=3---------------------------------------------------------------------
+
+
+from __future__ import print_function
+
+import argparse
+import os
+import platform
+import random
+import shutil
+import subprocess
+import sys
+
+PATH_THIS = os.path.abspath (os.path.dirname (__file__))
+PATH_ROOT = os.path.abspath (os.path.dirname (os.path.dirname (PATH_THIS)))
+
+sys.path.insert (0, os.path.dirname (PATH_THIS))
+
+
+
+#--------------------------------------------------------------------------
+
+if sys.version_info < (3, 7):
+   print ('This script requires python 3.7 or greater.', file=sys.stderr)
+   sys.exit (1)
+
+PATH_THIS = os.path.abspath (os.path.dirname (__file__))
+
+
+
+#-- find_erbb ----------------------------------------------------------------
+
+def find_erbb ():
+   files = os.listdir (os.getcwd ())
+   for file in files:
+      if file.endswith ('.erbb'):
+         return file
+
+   return None
+
+
+
+#-- find_erbui ---------------------------------------------------------------
+
+def find_erbui ():
+   files = os.listdir (os.getcwd ())
+   for file in files:
+      if file.endswith ('.erbui'):
+         return file
+
+   return None
+
+
+
+#-- read_erbb_ast ------------------------------------------------------------
+
+def read_erbb_ast (filepath):
+   import erbb
+
+   if filepath is None:
+      print ("\033[91mfatal error:\033[0m No erbb file found")
+      sys.exit (1)
+
+   try:
+      file = open (filepath, 'r', encoding='utf-8')
+   except IOError as e:
+      print ("\033[91mfatal error:\033[0m Unable to open for read '%s' file: %s" % (args.input, e.strerror))
+      sys.exit (1)
+
+   with file:
+      try:
+         ast = erbb.parse (filepath)
+      except erbb.error.Error as error:
+         if hasattr (sys.stderr, "isatty") and sys.stderr.isatty ():
+            error.color ()
+         print (str (error), file=sys.stderr)
+         sys.exit (1)
+
+   return ast
+
+
+
+#-- read_erbui_ast -----------------------------------------------------------
+
+def read_erbui_ast (filepath):
+   import erbui
+
+   if filepath is None:
+      print ("\033[91mfatal error:\033[0m No erbui file found")
+      sys.exit (1)
+
+   try:
+      file = open (filepath, 'r', encoding='utf-8')
+   except IOError as e:
+      print ("\033[91mfatal error:\033[0m Unable to open for read '%s' file: %s" % (args.input, e.strerror))
+      sys.exit (1)
+
+   with file:
+      try:
+         ast = erbui.parse (filepath)
+      except erbui.error.Error as error:
+         if hasattr (sys.stderr, "isatty") and sys.stderr.isatty ():
+            error.color ()
+         print (str (error), file=sys.stderr)
+         sys.exit (1)
+
+   return ast
+
+
+
+#-- usage --------------------------------------------------------------------
+
+def usage ():
+   print ('usage: erbb.py <command> [<args>]\n')
+   print ('command:')
+   print ('   setup           Install all dependencies')
+   print ('   init            Create a new project in current directory')
+   print ('   configure       Create the simulator project and hardware make file')
+   print ('   build           Build the IDE project or make file')
+   print ('   install         Install the firmware on the Daisy hardware')
+   print ('   bootloader      Install the QSPI bootloader on the Daisy hardware')
+   print ('   max             Cycling\'74 Max commands')
+   print ('   faust           Faust commands')
+   print ('')
+   print ('init [<name>]')
+   print ('   name:           Name of project, random name if not specified')
+   print ('')
+   print ('build [<target> [<configuration>]]')
+   print ('   target:')
+   print ('      daisy        Daisy firmware (default)')
+   print ('      gerber       Front panel PCB files from Kicad file only')
+   print ('      hardware     Front panel hardware files')
+   print ('      simulator    Simulator plug-in module')
+   print ('   configuration:')
+   print ('      debug        Debug configuration')
+   print ('      release      Release configuration (default)')
+   print ('')
+   print ('install [<mode> [<configuration>]]')
+   print ('   mode:')
+   print ('      openocd      Install using OpenOCD if installed (default)')
+   print ('      dfu          Install using USB (fallback)')
+   print ('   configuration:')
+   print ('      debug        Debug configuration')
+   print ('      release      Release configuration (default)')
+   print ('')
+   print ('max init [<name>]')
+   print ('   name:           Name of Max project, random name if not specified')
+   print ('faust init [<name>]')
+   print ('   name:           Name of Faust project, random name if not specified')
+   print ('')
+
+
+
+#-- setup --------------------------------------------------------------------
+
+def setup (args):
+   import setup
+
+   setup.check_environment ()
+
+   PATH_TOOLCHAIN = os.path.abspath (os.path.join (PATH_ROOT, 'build-system', 'toolchain'))
+   if os.path.exists (PATH_TOOLCHAIN):
+      shutil.rmtree (PATH_TOOLCHAIN)
+   os.makedirs (PATH_TOOLCHAIN)
+
+   if platform.system () == 'Darwin':
+      setup.install_kicad_macos ()
+      setup.install_gnu_arm_embedded_macos ()
+      setup.install_toolchain_macos ()
+      if args.with_xcode_support:
+         setup.install_xcode_support ()
+      if args.with_max_support:
+         setup.install_max_package ()
+
+   elif platform.system () == 'Linux':
+      if args.with_apt:
+         subprocess.check_call ('sudo add-apt-repository --yes ppa:kicad/kicad-6.0-releases', shell=True)
+         subprocess.check_call ('sudo apt-get update', shell=True)
+         subprocess.check_call ('sudo apt-get install -y kicad gcc-arm-none-eabi libglu1-mesa-dev libcairo2-dev libffi-dev python3-dev kicad dfu-util openocd', shell=True)
+
+   elif platform.system () == 'Windows':
+      setup.install_msys2_mingw64 ()
+      setup.install_kicad_windows ()
+      setup.install_gnu_arm_embedded_windows ()
+      if args.with_max_support:
+         setup.install_max_package ()
+
+   else:
+      print ('Error: Platform %s unsupported' % platform.system ())
+      sys.exit (1)
+
+   if args.with_vscode_support:
+      setup.install_vscode_support ()
+
+   setup.install_python_requirements ()
+   setup.optimize_kicad_pcb_sch_read ()
+   setup.check_toolchain ()
+
+
+
+#-- init ---------------------------------------------------------------------
+
+def init (args):
+   import erbb
+   import erbui
+
+   cwd = os.getcwd ()
+   erbb.check_environment (cwd)
+
+   if args.name:
+      name = args.name
+
+   else:
+      name1 = random.choice (('Blu', 'So', 'Ann', 'Hyp', 'Nois', 'X-', 'In', 'Per', 'Tri', 'Tetra', 'Dual', 'Quad', 'Vec'))
+      name2 = random.choice (('line', 'nage', 'nor', 'rrr', 'y', 'er', 'tor', 'nator', 'dam', 'dron', 'bre', 'OR'))
+      name = name1 + name2
+
+
+   if args.language == 'c++':
+      erbb.init (cwd, name)
+
+   elif args.language == 'max':
+      erbb.max_init (cwd, name)
+
+   elif args.language == 'faust':
+      erbb.faust_init (cwd, name)
+
+
+
+#-- configure ----------------------------------------------------------------
+
+def configure (args):
+   import erbb
+
+   cwd = os.getcwd ()
+   erbb.check_environment (cwd)
+
+   ast_erbb = read_erbb_ast (find_erbb ())
+
+   erbb.generate_gyp (cwd, ast_erbb)
+   erbb.configure (cwd, ast_erbb)
+   erbb.cleanup (cwd)
+
+
+
+#-- build --------------------------------------------------------------------
+
+def build (args):
+   import erbb
+
+   cwd = os.getcwd ()
+   erbb.check_environment (cwd)
+
+   target = args.target if args.target != None else 'firmware'
+
+   if target == 'simulator':
+      build_simulator (args)
+
+   elif target == 'firmware':
+      build_firmware (args)
+
+   elif target == 'performance':
+      build_performance (args)
+
+   elif target == 'hardware':
+      build_hardware (args)
+
+   else:
+      print (args.target)
+      print (target)
+      assert False
+
+
+
+#-- build_simulator ----------------------------------------------------------
+
+def build_simulator (args):
+   import erbb
+
+   cwd = os.getcwd ()
+
+   ast_erbb = read_erbb_ast (find_erbb ())
+
+   # force erbui parsing to avoid cache concurrency on Windows
+   ast_erbui = read_erbui_ast (find_erbui ())
+
+   if not hasattr (args, 'configuration'):
+      configuration = 'Release'
+   elif args.configuration == 'release':
+      configuration = 'Release'
+   elif args.configuration == 'debug':
+      configuration = 'Debug'
+
+   module = ast_erbb.modules [0].name
+
+   if args.xcode:
+      erbb.build_simulator_xcode_target (module, cwd, configuration)
+   else:
+      erbb.build_simulator_make_target (module, cwd, configuration)
+
+
+
+#-- build_firmware -----------------------------------------------------------
+
+def build_firmware (args):
+   import erbb
+
+   cwd = os.getcwd ()
+
+   ast_erbb = read_erbb_ast (find_erbb ())
+
+   # force erbui parsing to avoid cache concurrency on Windows
+   ast_erbui = read_erbui_ast (find_erbui ())
+
+   if not hasattr (args, 'configuration'):
+      configuration = 'Release'
+   elif args.configuration == 'release':
+      configuration = 'Release'
+   elif args.configuration == 'debug':
+      configuration = 'Debug'
+
+   if not hasattr (args, 'semihosting'):
+      semihosting = False
+   else:
+      semihosting = args.semihosting
+
+   module = ast_erbb.modules [0].name
+
+   erbb.build_daisy_target (module, cwd, configuration, semihosting)
+
+
+
+#-- build_performance --------------------------------------------------------
+
+def build_performance (args):
+   import erbb
+
+   cwd = os.getcwd ()
+
+   if not hasattr (args, 'logger'):
+      logger = 'auto'
+   else:
+      logger = args.logger
+
+   ast_erbb = read_erbb_ast (find_erbb ())
+
+   # force erbui parsing to avoid cache concurrency on Windows
+   ast_erbui = read_erbui_ast (find_erbui ())
+
+   module = ast_erbb.modules [0].name
+
+   erbb.build_performance_target (module, cwd, logger)
+
+
+
+#-- build_hardware -----------------------------------------------------------
+
+def build_hardware (args):
+   import erbui
+
+   cwd = os.getcwd ()
+
+   ast_erbui = read_erbui_ast (find_erbui ())
+
+   path_artifacts = os.path.join (cwd, 'artifacts')
+
+   if args.only_gerber:
+      erbui.generate_front_pcb_gerber (path_artifacts, ast_erbui)
+   else:
+      erbui.generate_hardware (path_artifacts, ast_erbui)
+
+
+
+#-- install ------------------------------------------------------------------
+
+def install (args):
+   import erbb
+
+   cwd = os.getcwd ()
+   erbb.check_environment (cwd)
+
+   target = args.target if args.target != None else 'firmware'
+
+   if target == 'firmware':
+      install_firmware (args)
+   elif target == 'performance':
+      install_performance (args)
+   elif target == 'bootloader':
+      install_bootloader (args)
+   elif target == 'simulator':
+      install_simulator (args)
+
+
+
+#-- install_firmware ---------------------------------------------------------
+
+def install_firmware (args):
+   import erbb
+
+   cwd = os.getcwd ()
+
+   if not hasattr (args, 'configuration'):
+      configuration = 'Release'
+   elif args.configuration == 'release':
+      configuration = 'Release'
+   elif args.configuration == 'debug':
+      configuration = 'Debug'
+
+   if not hasattr (args, 'programmer'):
+      programmer = 'auto'
+   else:
+      programmer = args.programmer
+
+   ast_erbb = read_erbb_ast (find_erbb ())
+   module = ast_erbb.modules [0].name
+   section = ast_erbb.modules [0].section.name
+   erbb.deploy_daisy (module, section, cwd, configuration, programmer)
+
+
+
+#-- install_performance ------------------------------------------------------
+
+def install_performance (args):
+   import erbb
+
+   cwd = os.getcwd ()
+
+   if not hasattr (args, 'programmer'):
+      programmer = 'auto'
+   else:
+      programmer = args.programmer
+
+   ast_erbb = read_erbb_ast (find_erbb ())
+   module = ast_erbb.modules [0].name
+   section = ast_erbb.modules [0].section.name
+   erbb.deploy_performance (module, section, cwd, programmer)
+
+
+
+#-- install_bootloader -------------------------------------------------------
+
+def install_bootloader (args):
+   import erbb
+
+   if args.fast_boot:
+      variant = 'intdfu-10ms'
+   else:
+      variant = 'intdfu-2000ms'
+
+   erbb.deploy_bootloader (variant)
+
+
+
+#-- install_simulator ---------------------------------------------------------
+
+def install_simulator (args):
+   import erbb
+
+   cwd = os.getcwd ()
+
+   if not hasattr (args, 'configuration'):
+      configuration = 'Release'
+   elif args.configuration == 'release':
+      configuration = 'Release'
+   elif args.configuration == 'debug':
+      configuration = 'Debug'
+
+   ast_erbb = read_erbb_ast (find_erbb ())
+   module = ast_erbb.modules [0].name
+   erbb.deploy_simulator (module, cwd, configuration)
+
+
+
+#-- run ----------------------------------------------------------------------
+
+def run (args):
+   target = args.target
+
+   target = args.target if args.target != None else 'performance'
+
+   if target == 'performance':
+      run_performance (args)
+
+
+
+#-- run_performance ----------------------------------------------------------
+
+def run_performance (args):
+   import erbb
+
+   erbb.run_performance ()
+
+
+
+#-- parse_args_setup ---------------------------------------------------------
+
+def parse_args_setup (parent):
+
+   parser = parent.add_parser (
+      'setup',
+      help='install all dependencies'
+   )
+
+   if platform.system () == 'Darwin':
+      parser.add_argument(
+         '--with-xcode-support',
+         action = 'store_true',
+         help = 'add Xcode extra support such as erbui/erbb syntax coloring'
+      )
+
+   elif platform.system () == 'Linux':
+      parser.add_argument(
+         '--with-apt',
+         action = 'store_true',
+         help = 'setup using the apt package manager'
+      )
+
+   parser.add_argument(
+      '--with-vscode-support',
+      action = 'store_true',
+      help = 'add Visual Studio Code extra support such as erbui/erbb syntax coloring'
+   )
+
+   if platform.system () == 'Darwin' or platform.system () == 'Windows':
+      parser.add_argument(
+         '--with-max-support',
+         action = 'store_true',
+         help = 'add Cycling\'74 Max extra support'
+      )
+
+
+
+#-- parse_args_init ----------------------------------------------------------
+
+def parse_args_init (parent):
+
+   parser = parent.add_parser (
+      'init',
+      help='create a new project in current directory'
+   )
+
+   parser.add_argument(
+      '--name',
+      help = 'name of project, random name if not specified'
+   )
+
+   parser.add_argument(
+      '--language', '-l',
+      default = 'c++',
+      choices = ['c++', 'max', 'faust'],
+      help = 'the language to use, defaults to c++'
+   )
+
+
+
+#-- parse_args_configure -----------------------------------------------------
+
+def parse_args_configure (parent):
+
+   parser = parent.add_parser (
+      'configure',
+      help='create the simulator IDE projects and firmware make file'
+   )
+
+
+
+#-- parse_args_build ---------------------------------------------------------
+
+def parse_args_build (parent):
+
+   parser = parent.add_parser (
+      'build',
+      help='build the simulator, firmware or hardware files'
+   )
+
+   subparsers = parser.add_subparsers (
+      dest='target' # target not required, so can be None for default
+   )
+
+   parser_simulator = subparsers.add_parser (
+      'simulator',
+      help='build the simulator'
+   )
+
+   parser_simulator.add_argument(
+      '--configuration', '-c',
+      default = 'release',
+      choices = ['debug', 'release'],
+      help = 'the build configuration to use, defaults to release'
+   )
+
+   parser_simulator.add_argument(
+      '--xcode',
+      action = 'store_true',
+      help = 'build using Xcode'
+   )
+
+   parser_firmware = subparsers.add_parser (
+      'firmware',
+      help='build the firmware'
+   )
+
+   parser_firmware.add_argument(
+      '--configuration', '-c',
+      default = 'release',
+      choices = ['debug', 'release'],
+      help = 'the build configuration to use, defaults to release'
+   )
+
+   parser_firmware.add_argument(
+      '--semihosting',
+      action = 'store_true',
+      help = 'enable semihosting'
+   )
+
+   parser_performance = subparsers.add_parser (
+      'performance',
+      help='build the performance analysis firmware'
+   )
+
+   parser_performance.add_argument(
+      '--logger',
+      default = 'auto',
+      choices = ['auto', 'usb', 'semihosting'],
+      help = 'the logger to use, defaults to automatic selection'
+   )
+
+   parser_hardware = subparsers.add_parser (
+      'hardware',
+      help='build the hardware'
+   )
+
+   parser_hardware.add_argument(
+      '--only-gerber',
+      action = 'store_true',
+      help = 'generate gerber from pcb layout only'
+   )
+
+
+
+#-- parse_args_install -------------------------------------------------------
+
+def parse_args_install (parent):
+
+   parser = parent.add_parser (
+      'install',
+      help='install the firmware or bootloader'
+   )
+
+   subparsers = parser.add_subparsers (
+      dest='target' # target not required, so can be None for default
+   )
+
+   parser_firmware = subparsers.add_parser (
+      'firmware',
+      help='install the firmware'
+   )
+
+   parser_firmware.add_argument(
+      '--configuration', '-c',
+      default = 'release',
+      choices = ['debug', 'release'],
+      help = 'the build configuration to use, defaults to release'
+   )
+
+   parser_firmware.add_argument(
+      '--programmer', '-p',
+      default = 'auto',
+      choices = ['auto', 'dfu', 'stlink'],
+      help = 'the programmer to use, defaults to automatic selection'
+   )
+
+   parser_bootloader = subparsers.add_parser (
+      'bootloader',
+      help='install the bootloader'
+   )
+
+   parser_bootloader.add_argument(
+      '--fast-boot',
+      action = 'store_true',
+      help = 'install fast boot variant'
+   )
+
+   parser_performance = subparsers.add_parser (
+      'performance',
+      help='install the performance analysis firmware'
+   )
+
+   parser_simulator = subparsers.add_parser (
+      'simulator',
+      help='install the simulator'
+   )
+
+   parser_simulator.add_argument(
+      '--configuration', '-c',
+      default = 'release',
+      choices = ['debug', 'release'],
+      help = 'the build configuration to use, defaults to release'
+   )
+
+
+
+#-- parse_args_run -----------------------------------------------------------
+
+def parse_args_run (parent):
+
+   parser = parent.add_parser (
+      'run',
+      help='run the firmware'
+   )
+
+   subparsers = parser.add_subparsers (
+      dest='target' # target not required, so can be None for default
+   )
+
+   parser_performance = subparsers.add_parser (
+      'performance',
+      help='run the performance analysis firmware'
+   )
+
+
+
+#-- parse_args ---------------------------------------------------------------
+
+def parse_args ():
+   parser = argparse.ArgumentParser (
+      prog='erbb',
+      description='Eurorack-blocks build system command line interface'
+   )
+
+   subparsers = parser.add_subparsers (
+      required=True,
+      dest='command'
+   )
+
+   parse_args_setup (subparsers)
+   parse_args_init (subparsers)
+   parse_args_configure (subparsers)
+   parse_args_build (subparsers)
+   parse_args_install (subparsers)
+   parse_args_run (subparsers)
+
+   return parser.parse_args (sys.argv [1:])
+
+
+
+#-- main ---------------------------------------------------------------------
+
+def main ():
+   args = parse_args ()
+
+   if args.command == 'setup':
+      setup (args)
+
+   else:
+      import erbb
+      import erbui
+
+      try:
+         if args.command == 'init':
+            init (args)
+
+         elif args.command == 'configure':
+            configure (args)
+
+         elif args.command == 'build':
+            build (args)
+
+         elif args.command == 'install':
+            install (args)
+
+         elif args.command == 'run':
+            run (args)
+
+      except erbb.error.Error as error:
+         if hasattr (sys.stderr, "isatty") and sys.stderr.isatty ():
+            error.color ()
+         print (str (error), file=sys.stderr)
+         sys.exit (1)
+
+      except erbui.error.Error as error:
+         if hasattr (sys.stderr, "isatty") and sys.stderr.isatty ():
+            error.color ()
+         print (str (error), file=sys.stderr)
+         sys.exit (1)
+
+
+
+#--------------------------------------------------------------------------
+
+if __name__ == '__main__':
+   sys.exit (main ())

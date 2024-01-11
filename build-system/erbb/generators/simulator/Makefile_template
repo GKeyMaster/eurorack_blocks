@@ -1,0 +1,133 @@
+##############################################################################
+#
+#     Makefile
+#     Copyright (c) 2020 Raphael DINGE
+#
+#Tab=3########################################################################
+
+
+
+# !!! THIS FILE WAS AUTOMATICALLY GENERATED. DO NOT MODIFY !!!
+
+
+%define_PATH_ROOT%
+%define_RACK_DIR%
+%define_ARCH%
+%define_CXX%
+
+CONFIGURATION ?= Debug
+
+
+
+# C standard
+CFLAGS += -std=gnu11
+
+# C++ standard
+CXXFLAGS += -std=gnu++2a
+
+FLAGS += -fPIC
+FLAGS += -I$(PATH_ROOT)/include
+FLAGS += -I$(RACK_DIR)/include
+FLAGS += -I$(RACK_DIR)/dep/include
+
+LDFLAGS += -shared
+LDFLAGS += -L$(RACK_DIR)/$(ARCH_OS)-$(ARCH_CPU) -lRack
+
+ifdef ARCH_MAC
+	LDFLAGS += -undefined dynamic_lookup
+	TARGET := plugin.dylib
+	RACK_USER_DIR ?= $(HOME)/Documents/Rack2
+	FLAGS += -DARCH_MAC
+	CXXFLAGS += -stdlib=libc++
+	LDFLAGS += -stdlib=libc++
+	MAC_SDK_FLAGS = -mmacosx-version-min=10.14
+	FLAGS += $(MAC_SDK_FLAGS)
+	LDFLAGS += $(MAC_SDK_FLAGS)
+endif
+
+ifdef ARCH_LIN
+	TARGET := plugin.so
+	RACK_USER_DIR ?= $(HOME)/.Rack2
+	FLAGS += -DARCH_LIN
+	# This prevents static variables in the DSO (dynamic shared object) from
+	# being preserved after dlclose().
+	FLAGS += -fno-gnu-unique
+	# When Rack loads a plugin, it symlinks /tmp/Rack2 to its system dir,
+	# so the plugin can link to libRack.
+	LDFLAGS += -Wl,-rpath=/tmp/Rack2
+	LDFLAGS += -static-libstdc++ -static-libgcc
+	CXXFLAGS += -Wsuggest-override
+endif
+
+ifdef ARCH_WIN
+	LDFLAGS += -static-libstdc++
+	TARGET := plugin.dll
+	RACK_USER_DIR ?= "$(USERPROFILE)"/Documents/Rack2
+	FLAGS += -DARCH_WIN
+	FLAGS += -D_USE_MATH_DEFINES
+	FLAGS += -municode
+	CXXFLAGS += -Wsuggest-override
+endif
+
+ifdef ARCH_X64
+	FLAGS += -DARCH_X64
+	FLAGS += -march=nehalem
+endif
+
+ifdef ARCH_ARM64
+	FLAGS += -DARCH_ARM64
+	FLAGS += -march=armv8-a+fp+simd
+endif
+
+# Optimization
+ifeq ($(CONFIGURATION),Debug)
+FLAGS += -O0 -g -funsafe-math-optimizations
+endif
+
+ifeq ($(CONFIGURATION),Release)
+FLAGS += -O3 -DNDEBUG=1 -funsafe-math-optimizations
+endif
+
+%warnings%
+ifdef ARCH_MAC
+	FLAGS += -Wno-c99-extensions
+endif
+
+FLAGS += -Derb_TARGET_VCV_RACK
+%defines.entities%
+%bases.entities%
+
+# Apply FLAGS to language-specific flags
+CFLAGS += $(FLAGS)
+CXXFLAGS += $(FLAGS)
+
+
+
+all: $(CONFIGURATION)/$(TARGET)
+
+%target_actions%
+%sources%
+%resources%
+$(CONFIGURATION):
+	mkdir $@
+
+package: all resources ../plugin.json ../panel_vcvrack.svg
+	@echo "PACKAGE $(CONFIGURATION) %module.name%"
+	@mkdir -p $(CONFIGURATION)/package/res
+ifdef ARCH_MAC
+	@install_name_tool -change libRack.dylib /tmp/Rack2/libRack.dylib $(CONFIGURATION)/$(TARGET)
+endif
+	@cp $(CONFIGURATION)/$(TARGET) $(CONFIGURATION)/package/$(TARGET)
+	@cp ../plugin.json $(CONFIGURATION)/package/plugin.json
+	@cp ../panel_vcvrack.svg $(CONFIGURATION)/package/res/panel_vcvrack.svg
+
+install: package
+	@echo "INSTALL $(RACK_USER_DIR)/plugins-$(ARCH_OS)-$(ARCH_CPU)/%module.name%/"
+	@mkdir -p $(RACK_USER_DIR)/plugins-$(ARCH_OS)-$(ARCH_CPU)/%module.name%
+	@cp -r $(CONFIGURATION)/package/* $(RACK_USER_DIR)/plugins-$(ARCH_OS)-$(ARCH_CPU)/%module.name%/
+ifdef ARCH_MAC
+	@codesign --force --sign - $(RACK_USER_DIR)/plugins-$(ARCH_OS)-$(ARCH_CPU)/%module.name%/plugin.dylib > /dev/null 2>&1
+endif
+
+.PHONY: package install resources
+.DEFAULT_GOAL := all

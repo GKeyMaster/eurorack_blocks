@@ -1,0 +1,25 @@
+/*****************************************************************************
+
+      Bypass.erbui
+      Copyright (c) 2020 Raphael DINGE
+
+*Tab=3***********************************************************************/
+
+
+
+module Bypass {
+   board kivu12
+   width 8hp
+   material aluminum black
+   header { label "BYPASS" }
+
+   control audio_in AudioIn {
+      position 4hp, 40mm
+      label "IN"
+   }
+
+   control audio_out AudioOut {
+      position 4hp, 80mm
+      label "OUT"
+   }
+}

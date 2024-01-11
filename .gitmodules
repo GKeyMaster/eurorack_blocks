@@ -1,0 +1,12 @@
+[submodule "submodules/kicad-libs"]
+	path = submodules/kicad-libs
+	url = https://github.com/ohmtech/kicad-libs.git
+[submodule "submodules/libDaisy"]
+	path = submodules/libDaisy
+	url = https://github.com/electro-smith/libDaisy.git
+[submodule "submodules/vcv-rack-sdk"]
+	path = submodules/vcv-rack-sdk
+	url = https://github.com/ohmtech-rdi/vcv-rack-sdk.git
+[submodule "submodules/gyp-next"]
+	path = submodules/gyp-next
+	url = https://github.com/nodejs/gyp-next.git

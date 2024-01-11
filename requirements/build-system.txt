@@ -1,0 +1,28 @@
+# Packages required to user erbb and erbui
+
+# SVG & PDF generation
+
+cairocffi>=1.4.0,<1.5.0
+CairoSVG>=2.6.0
+freetype-py>=2.4.0
+
+# DXF generation
+
+ezdxf>=1.0.2
+
+# Kicad module generation from SVG
+
+svg2mod>=1.2
+
+# AudioSample generation
+
+SoundFile>=0.12.1
+numpy>=1.21.0
+
+# Display Format
+
+imageio>=2.31.1
+
+# ST-link detection
+
+pyserial==3.5

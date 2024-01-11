@@ -1,0 +1,258 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L power:PWR_FLAG #FLG0101
+U 1 1 5FC83467
+P 5700 3550
+F 0 "#FLG0101" H 5700 3625 50  0001 C CNN
+F 1 "PWR_FLAG" H 5700 3724 50  0000 C CNN
+F 2 "" H 5700 3550 50  0001 C CNN
+F 3 "~" H 5700 3550 50  0001 C CNN
+	1    5700 3550
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0106
+U 1 1 5FC83485
+P 5700 3550
+F 0 "#PWR0106" H 5700 3300 50  0001 C CNN
+F 1 "GND" H 5705 3377 50  0000 C CNN
+F 2 "" H 5700 3550 50  0001 C CNN
+F 3 "" H 5700 3550 50  0001 C CNN
+	1    5700 3550
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_01x06 J1
+U 1 1 5FC933AD
+P 6850 1700
+F 0 "J1" H 6930 1692 50  0000 L CNN
+F 1 "OUT" H 6930 1601 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical" H 6850 1700 50  0001 C CNN
+F 3 "~" H 6850 1700 50  0001 C CNN
+F 4 "Male Header" H 6850 1700 50  0001 C CNN "Device"
+F 5 "CONN HEADER VERT 6POS 2.54MM" H 6850 1700 50  0001 C CNN "Description"
+F 6 "No" H 6850 1700 50  0001 C CNN "Place"
+F 7 "Digikey" H 6850 1700 50  0001 C CNN "Dist"
+F 8 "609-3272-ND" H 6850 1700 50  0001 C CNN "DistPartNumber"
+F 9 "https://www.digikey.de/product-detail/en/amphenol-icc-fci/68001-106HLF/609-3272-ND/1878473" H 6850 1700 50  0001 C CNN "DistLink"
+	1    6850 1700
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:PWR_FLAG #FLG0103
+U 1 1 5FC9452E
+P 6100 3550
+F 0 "#FLG0103" H 6100 3625 50  0001 C CNN
+F 1 "PWR_FLAG" H 6100 3724 50  0000 C CNN
+F 2 "" H 6100 3550 50  0001 C CNN
+F 3 "~" H 6100 3550 50  0001 C CNN
+	1    6100 3550
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector_Generic:Conn_01x01 J2
+U 1 1 5FCA991E
+P 6850 2500
+F 0 "J2" H 6930 2492 50  0000 L CNN
+F 1 "GND" H 6930 2401 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical" H 6850 2500 50  0001 C CNN
+F 3 "~" H 6850 2500 50  0001 C CNN
+F 4 "Male Header" H 6850 2500 50  0001 C CNN "Device"
+F 5 "CONN HEADER VERT 2POS 2.54MM" H 6850 2500 50  0001 C CNN "Description"
+F 6 "No" H 6850 2500 50  0001 C CNN "Place"
+F 7 "Digikey" H 6850 2500 50  0001 C CNN "Dist"
+F 8 "609-3506-ND" H 6850 2500 50  0001 C CNN "DistPartNumber"
+F 9 "https://www.digikey.de/product-detail/en/amphenol-icc-fci/68001-106HLF/609-3272-ND/1878473" H 6850 2500 50  0001 C CNN "DistLink"
+	1    6850 2500
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3V3 #PWR0104
+U 1 1 5FCAFB10
+P 6650 2700
+F 0 "#PWR0104" H 6650 2550 50  0001 C CNN
+F 1 "+3V3" V 6665 2828 50  0000 L CNN
+F 2 "" H 6650 2700 50  0001 C CNN
+F 3 "" H 6650 2700 50  0001 C CNN
+	1    6650 2700
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:+3V3 #PWR0108
+U 1 1 5FCAD0BA
+P 6100 3550
+F 0 "#PWR0108" H 6100 3400 50  0001 C CNN
+F 1 "+3V3" V 6115 3678 50  0000 L CNN
+F 2 "" H 6100 3550 50  0001 C CNN
+F 3 "" H 6100 3550 50  0001 C CNN
+	1    6100 3550
+	-1   0    0    1   
+$EndComp
+$Comp
+L Device:R_POT RV1
+U 1 1 5FCAE65B
+P 5100 2100
+F 0 "RV1" H 5030 2146 50  0000 R CNN
+F 1 "100k" H 5030 2055 50  0000 R CNN
+F 2 "Potentiometer_Thonk:AlphaPot9ShaftD" H 5100 2100 50  0001 C CNN
+F 3 "~" H 5100 2100 50  0001 C CNN
+F 4 "Potentiometer" H 5100 2100 50  0001 C CNN "Device"
+F 5 "ALPHA 9MM POTS – VERTICAL D-SHAFT" H 5100 2100 50  0001 C CNN "Description"
+F 6 "No" H 5100 2100 50  0001 C CNN "Place"
+F 7 "Thonk" H 5100 2100 50  0001 C CNN "Dist"
+F 8 "RD901F-B100K" H 5100 2100 50  0001 C CNN "DistPartNumber"
+F 9 "https://www.thonk.co.uk/shop/alpha-9mm-pots-dshaft/" H 5100 2100 50  0001 C CNN "DistLink"
+	1    5100 2100
+	1    0    0    1   
+$EndComp
+$Comp
+L power:+3V3 #PWR?
+U 1 1 5FCAE822
+P 5050 2400
+F 0 "#PWR?" H 5050 2250 50  0001 C CNN
+F 1 "+3V3" V 5065 2528 50  0000 L CNN
+F 2 "" H 5050 2400 50  0001 C CNN
+F 3 "" H 5050 2400 50  0001 C CNN
+	1    5050 2400
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 5FCAE989
+P 5050 1800
+F 0 "#PWR?" H 5050 1550 50  0001 C CNN
+F 1 "GND" H 5055 1627 50  0000 C CNN
+F 2 "" H 5050 1800 50  0001 C CNN
+F 3 "" H 5050 1800 50  0001 C CNN
+	1    5050 1800
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:C C1
+U 1 1 5FCAEBB0
+P 5350 1950
+F 0 "C1" H 5465 1996 50  0000 L CNN
+F 1 "100n" H 5465 1905 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric" H 5388 1800 50  0001 C CNN
+F 3 "~" H 5350 1950 50  0001 C CNN
+F 4 "Ceramic Capacitor" H 5350 1950 50  0001 C CNN "Device"
+F 5 "CAP CER 0.1UF 16V X7R 0603" H 5350 1950 50  0001 C CNN "Description"
+F 6 "Yes" H 5350 1950 50  0001 C CNN "Place"
+F 7 "Digikey" H 5350 1950 50  0001 C CNN "Dist"
+F 8 "311-1088-1-ND" H 5350 1950 50  0001 C CNN "DistPartNumber"
+F 9 "https://www.digikey.de/product-detail/en/yageo/CC0603KRX7R7BB104/311-1088-1-ND/302998" H 5350 1950 50  0001 C CNN "DistLink"
+	1    5350 1950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5050 1800 5100 1800
+Wire Wire Line
+	5100 1800 5100 1950
+Wire Wire Line
+	5050 2400 5100 2400
+Wire Wire Line
+	5100 2400 5100 2250
+Wire Wire Line
+	5250 2100 5350 2100
+Connection ~ 5350 2100
+Wire Wire Line
+	5350 2100 5550 2100
+Wire Wire Line
+	5100 1800 5350 1800
+Connection ~ 5100 1800
+$Comp
+L Connector_Generic:Conn_01x01 J3
+U 1 1 5FCAF399
+P 6850 2700
+F 0 "J3" H 6930 2692 50  0000 L CNN
+F 1 "3V3" H 6930 2601 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical" H 6850 2700 50  0001 C CNN
+F 3 "~" H 6850 2700 50  0001 C CNN
+	1    6850 2700
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 5FCAF502
+P 6650 2500
+F 0 "#PWR?" H 6650 2250 50  0001 C CNN
+F 1 "GND" V 6650 2300 50  0000 C CNN
+F 2 "" H 6650 2500 50  0001 C CNN
+F 3 "" H 6650 2500 50  0001 C CNN
+	1    6650 2500
+	0    1    1    0   
+$EndComp
+Text GLabel 6650 1500 0    50   Input ~ 0
+OUT
+Text GLabel 5550 2100 2    50   Output ~ 0
+OUT
+$Comp
+L power:GND #PWR?
+U 1 1 5FD61580
+P 6650 1600
+F 0 "#PWR?" H 6650 1350 50  0001 C CNN
+F 1 "GND" V 6650 1400 50  0000 C CNN
+F 2 "" H 6650 1600 50  0001 C CNN
+F 3 "" H 6650 1600 50  0001 C CNN
+	1    6650 1600
+	0    1    1    0   
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 5FD61595
+P 6650 1700
+F 0 "#PWR?" H 6650 1450 50  0001 C CNN
+F 1 "GND" V 6650 1500 50  0000 C CNN
+F 2 "" H 6650 1700 50  0001 C CNN
+F 3 "" H 6650 1700 50  0001 C CNN
+	1    6650 1700
+	0    1    1    0   
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 5FD615AA
+P 6650 1800
+F 0 "#PWR?" H 6650 1550 50  0001 C CNN
+F 1 "GND" V 6650 1600 50  0000 C CNN
+F 2 "" H 6650 1800 50  0001 C CNN
+F 3 "" H 6650 1800 50  0001 C CNN
+	1    6650 1800
+	0    1    1    0   
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 5FD615BF
+P 6650 1900
+F 0 "#PWR?" H 6650 1650 50  0001 C CNN
+F 1 "GND" V 6650 1700 50  0000 C CNN
+F 2 "" H 6650 1900 50  0001 C CNN
+F 3 "" H 6650 1900 50  0001 C CNN
+	1    6650 1900
+	0    1    1    0   
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 5FD615D4
+P 6650 2000
+F 0 "#PWR?" H 6650 1750 50  0001 C CNN
+F 1 "GND" V 6650 1800 50  0000 C CNN
+F 2 "" H 6650 2000 50  0001 C CNN
+F 3 "" H 6650 2000 50  0001 C CNN
+	1    6650 2000
+	0    1    1    0   
+$EndComp
+$EndSCHEMATC
